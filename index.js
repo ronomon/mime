@@ -1377,6 +1377,19 @@ MIME.decodeHeaderEncodedWordsWSP = function(
   return true;
 };
 
+MIME.decodeHeaderIdentifier = function(buffer) {
+  var self = this;
+  buffer = self.decodeHeaderBuffer(buffer, false);
+  if (!buffer) return undefined;
+  buffer = self.decodeHeaderUnfold(buffer);
+  buffer = self.decodeHeaderRemoveComments(buffer);
+  buffer = self.decodeHeaderAngleBrackets(buffer);
+  return buffer.toString('ascii').trim().replace(
+    /^\s*<\s*|\s*>\s*$/g,
+    ''
+  );
+};
+
 MIME.decodeHeaderIdentifiers = function(buffer) {
   var self = this;
   buffer = self.decodeHeaderBuffer(buffer, false);
@@ -2478,8 +2491,6 @@ MIME.Error = {
     "(see RFC 2045 2.2, RFC 2046 4.1.2, RFC 2047 3 and RFC 2231).\r\n",
   CommentUnterminated: "550 Your email had a header with an unterminated " +
     "comment (see RFC 5322 3.2.2).\r\n",
-  ContentIDMultipleIdentifiers: "550 Your email had a 'Content-ID' header " +
-    "with multiple identifiers (see RFC 2045 7).\r\n",
   ContentTransferEncodingUnrecognized: "550 Your email had an unrecognized " +
     "'Content-Transfer-Encoding' mechanism (see RFC 2045 6.1 and 6.4).\r\n",
   ContentType: "550 Your email had an invalid 'Content-Type' header syntax " +
@@ -2523,8 +2534,6 @@ MIME.Error = {
   HeadersLimit: "550 Your email had headers exceeding the limit of 256 KB.\r\n",
   LineLimit: "550 Your email had a line exceeding the line length limit of " +
     "998 characters excluding CRLF (see RFC 5322 2.1.1).\r\n",
-  MessageIDMultipleIdentifiers: "550 Your email had a 'Message-ID' header " +
-    "with multiple identifiers (see RFC 5322 3.6.4).\r\n",
   MultipleContentDisposition: "550 Your email had multiple " +
     "'Content-Disposition' headers (see RFC 5322 3.6).\r\n",
   MultipleContentID: "550 Your email had multiple 'Content-ID' headers " +
@@ -2671,12 +2680,9 @@ Object.defineProperty(MIME.Message.prototype, 'contentDisposition', {
 Object.defineProperty(MIME.Message.prototype, 'contentID', {
   get: function() {
     var self = this;
-    if (self._contentID) return self._contentID[0];
-    self._contentID = MIME.decodeHeaderIdentifiers(self.headers['content-id']);
-    if (self._contentID.length > 1) {
-      throw new Error(MIME.Error.ContentIDMultipleIdentifiers);
-    }
-    return self._contentID[0];
+    if (self._contentID !== undefined) return self._contentID;
+    self._contentID = MIME.decodeHeaderIdentifier(self.headers['content-id']);
+    return self._contentID;
   }
 });
 
@@ -2816,12 +2822,9 @@ Object.defineProperty(MIME.Message.prototype, 'inReplyTo', {
 Object.defineProperty(MIME.Message.prototype, 'messageID', {
   get: function() {
     var self = this;
-    if (self._messageID) return self._messageID[0];
-    self._messageID = MIME.decodeHeaderIdentifiers(self.headers['message-id']);
-    if (self._messageID.length > 1) {
-      throw new Error(MIME.Error.MessageIDMultipleIdentifiers);
-    }
-    return self._messageID[0];
+    if (self._messageID !== undefined) return self._messageID;
+    self._messageID = MIME.decodeHeaderIdentifier(self.headers['message-id']);
+    return self._messageID;
   }
 });
 
