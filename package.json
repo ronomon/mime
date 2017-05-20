@@ -1,0 +1,28 @@
+{
+  "name": "@ronomon/mime",
+  "version": "1.0.0",
+  "description": "Fast, robust, compliant MIME decoder.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronomon/mime.git"
+  },
+  "keywords": [
+    "mime",
+    "decoder"
+  ],
+  "author": "Joran Dirk Greef",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ronomon/mime/issues"
+  },
+  "homepage": "https://github.com/ronomon/mime#readme",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@ronomon/base64": "^2.0.0",
+    "@ronomon/quoted-printable": "^2.0.0",
+    "iconv": "^2.2.3"
+  }
+}
