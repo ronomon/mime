@@ -73,6 +73,11 @@ var tests = [
     '\t WeD \t,(c)\t 17 \t May \t 2017\r\n \t 1:6:59 \t +236  \t',
     null,
     MIME.Error.DateZone
+  ],
+  [
+    'Mon, 22 May 2017 9:7:53',
+    1495444073000,
+    null
   ]
 ];
 tests.forEach(

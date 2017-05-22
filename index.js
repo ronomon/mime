@@ -773,7 +773,7 @@ MIME.decodeHeaderDate = function(buffer) {
   var hour = parseInt(match[5], 10);
   var minute = parseInt(match[6], 10);
   var second = parseInt((match[7] || '0').replace(/:/, ''), 10);
-  var zone = match[8].replace(/\s/g, '');
+  var zone = (match[8] || '').replace(/\s/g, '') || '+0000';
   if (/^[A-Z]+$/.test(zone)) {
     if (self.decodeHeaderDateZones.hasOwnProperty(zone)) {
       zone = self.decodeHeaderDateZones[zone];
@@ -833,7 +833,7 @@ MIME.decodeHeaderDateMonth = {
   DEC: 12
 };
 
-MIME.decodeHeaderDateRegex = /^(MON|TUE|WED|THU|FRI|SAT|SUN)?\s*,?\s*(\d{1,2})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*(\d{2,4})\s+(\d{1,2}):(\d{1,2})(:\d{1,2})?\s+([+-]\s*\d{2,4}|[A-Z]{1,5})\s*$/;
+MIME.decodeHeaderDateRegex = /^(MON|TUE|WED|THU|FRI|SAT|SUN)?\s*,?\s*(\d{1,2})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*(\d{2,4})\s+(\d{1,2}):(\d{1,2})(:\d{1,2})?\s*([+-]\s*\d{2,4}|[A-Z]{1,5})?\s*$/;
 
 MIME.decodeHeaderDateZones = {
   ACDT: '+1030',
