@@ -20,8 +20,7 @@
     "RFC 2183",
     "RFC 2231",
     "RFC 5322",
-    "smtp",
-    "standards-compliant"
+    "smtp"
   ],
   "author": "Joran Dirk Greef",
   "license": "MIT",
