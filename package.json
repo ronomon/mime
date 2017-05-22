@@ -1,15 +1,27 @@
 {
   "name": "@ronomon/mime",
   "version": "1.1.0",
-  "description": "Fast, robust, compliant MIME decoder.",
+  "description": "Fast, robust, standards-compliant MIME decoder. Ships with extensive tests and fuzz tests.",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ronomon/mime.git"
   },
   "keywords": [
+    "buffer",
+    "decode",
+    "decoder",
+    "email",
+    "message",
     "mime",
-    "decoder"
+    "RFC 2045",
+    "RFC 2046",
+    "RFC 2047",
+    "RFC 2183",
+    "RFC 2231",
+    "RFC 5322",
+    "smtp",
+    "standards-compliant"
   ],
   "author": "Joran Dirk Greef",
   "license": "MIT",
