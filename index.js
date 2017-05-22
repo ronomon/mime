@@ -773,6 +773,14 @@ MIME.decodeHeaderDate = function(buffer) {
   var hour = parseInt(match[5], 10);
   var minute = parseInt(match[6], 10);
   var second = parseInt((match[7] || '0').replace(/:/, ''), 10);
+  // RFC 5322 3.3 Date and Time Specification
+  // The form "+0000" SHOULD be used to indicate a time zone at
+  // Universal Time.
+
+  // Some BlackBerry email clients (e.g. 10.0.10.738) do not supply the zone.
+  // The date-time they provide is in UTC.
+
+  // Non-Spec: We accept a missing time zone and assume UTC.
   var zone = (match[8] || '').replace(/\s/g, '') || '+0000';
   if (/^[A-Z]+$/.test(zone)) {
     if (self.decodeHeaderDateZones.hasOwnProperty(zone)) {

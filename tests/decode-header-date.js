@@ -75,7 +75,7 @@ var tests = [
     MIME.Error.DateZone
   ],
   [
-    'Mon, 22 May 2017 9:7:53',
+    'Mon, 22 May 2017 9:7:53 \t ',
     1495444073000,
     null
   ]

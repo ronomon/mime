@@ -109,14 +109,16 @@ that the body is encoded in any other character set.
 
 * Decodes a variety of time zones and year formats.
 
-* Rejects invalid `Date` syntax.
+* Accepts missing time zone and assumes UTC to support email clients such as Blackberry which do not provide the required time zone in the `Date` header.
+
+* Rejects invalid `Date` header syntax.
 
 * Rejects missing `From` header.
 
 * Rejects headers containing forbidden characters.
 
 * Rejects folded header lines which exceed the 998 line length limit, but only
-after applying grace for clients such as Outlook.com which exclude the
+after allowing for clients such as Outlook.com which exclude the
 `field-name` and `colon` from their character count, and which mistake the limit
 to be 1000 characters excluding the CRLF. The limit is in fact 998 characters
 excluding the CRLF.
