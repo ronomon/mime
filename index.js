@@ -713,7 +713,6 @@ MIME.decodeHeaderContentType = function(buffer) {
     )
   );
   if (!/^\S+\/\S+$/.test(header.value)) {
-    console.log('here: ' + header.value);
     throw new Error(self.Error.ContentType);
   }
   if (/^message\/external-body$/i.test(header.value)) {
