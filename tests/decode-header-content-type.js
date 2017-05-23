@@ -100,6 +100,94 @@ var tests = [
     'multipart/alternative',
     null,
     MIME.Error.ContentTypeBoundaryMissing
+  ],
+  [
+    'text/plain; name==?us-ascii?Q?eicar.com?=',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name=eicar.com',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name=""eicar.com',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name="eicar.com',
+    null,
+    MIME.Error.QuotedStringUnterminated
+  ],
+  [
+    'text/plain; name==?us-ascii?Q?eicar.com?=',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name==?us-ascii?Q?eicar?=.com',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name==?us-ascii?Q?eicar?= =?us-ascii?Q?.com?=',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name="eicar.=?us-ascii?Q?com?="',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name="eicar.=?us-ascii?Q?com?=',
+    null,
+    MIME.Error.QuotedStringUnterminated
+  ],
+  [
+    'text/plain; name=eicar.=?us-ascii?Q?com?=',
+    {
+      value: 'text/plain',
+      parameters: { name: 'eicar.com' }
+    },
+    null
+  ],
+  [
+    'text/plain; name="safe.txt"; name="eicar.com"',
+    null,
+    MIME.Error.ParameterMultipleName
+  ],
+  [
+    // Outlook Express will proceed further to strip double quotes from '"e"xe':
+    'text/plain; name="trojan.\\"e\\"xe"',
+    {
+      value: 'text/plain',
+      parameters: { name: 'trojan."e"xe' }
+    },
+    null
   ]
 ];
 tests.forEach(

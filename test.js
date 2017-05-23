@@ -13,6 +13,6 @@ tests.forEach(
     });
   }
 );
-console.log('');
+console.log('================');
 console.log('PASSED ALL TESTS');
-console.log('');
+console.log('================');
