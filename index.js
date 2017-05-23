@@ -1968,6 +1968,7 @@ MIME.decodeHeaderValueParametersAssert = function(parameters, name) {
   // Some clients (e.g. anti-virus) may use the first parameter.
   // Other clients (e.g. MUA) may use the second parameter.
   // https://noxxi.de/research/mime-conflicting-boundary.html
+  // https://securityvulns.com/advisories/content.asp
   if (name === 'boundary') {
     if (parameters.hasOwnProperty(name)) {
       throw new Error(self.Error.ParameterMultipleBoundary);
@@ -1979,6 +1980,10 @@ MIME.decodeHeaderValueParametersAssert = function(parameters, name) {
   } else if (name === 'filename') {
     if (parameters.hasOwnProperty(name)) {
       throw new Error(self.Error.ParameterMultipleFilename);
+    }
+  } else if (name === 'name') {
+    if (parameters.hasOwnProperty(name)) {
+      throw new Error(self.Error.ParameterMultipleName);
     }
   }
 };
@@ -2609,6 +2614,8 @@ MIME.Error = {
     "charset parameters (see RFC 2046 4.1.2).\r\n",
   ParameterMultipleFilename: "550 Your email had a header with multiple " +
     "filename parameters (see RFC 2183 2.3).\r\n",
+  ParameterMultipleName: "550 Your email had a header with multiple " +
+    "name parameters (see RFC 2046 4.5.1).\r\n",
   ParameterValueMissing: "550 Your email had a header with a missing " +
     "parameter value (see RFC 2045 5.1 and RFC 2183 2).\r\n",
   PartBoundaryCharactersForbidden: "550 Your email had a multipart " +
