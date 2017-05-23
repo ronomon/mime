@@ -2953,3 +2953,5 @@ Object.defineProperty(MIME.Message.prototype, 'to', {
 MIME.QuotedPrintable = require('@ronomon/quoted-printable');
 
 module.exports = MIME;
+
+// S.D.G.
