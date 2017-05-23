@@ -45,6 +45,37 @@ MIME.decodeBase64 = function(buffer, body) {
   try {
     return self.Base64.decode(buffer);
   } catch (error) {
+    // RFC 2045 6.8 Base64 Content-Transfer-Encoding
+    //
+    // Any characters outside of the base64 alphabet are to be ignored in
+    // base64-encoded data.
+
+    // RFC 4648 3.3 Interpretation of Non-Alphabet Characters in Encoded Data
+    //
+    // Base encodings use a specific, reduced alphabet to encode binary
+    // data.  Non-alphabet characters could exist within base-encoded data,
+    // caused by data corruption or by design.  Non-alphabet characters may
+    // be exploited as a "covert channel", where non-protocol data can be
+    // sent for nefarious purposes.  Non-alphabet characters might also be
+    // sent in order to exploit implementation errors leading to, e.g.,
+    // buffer overflow attacks.
+    //
+    // Implementations MUST reject the encoded data if it contains
+    // characters outside the base alphabet when interpreting base-encoded
+    // data, unless the specification referring to this document explicitly
+    // states otherwise.  Such specifications may instead state, as MIME
+    // does, that characters outside the base encoding alphabet should
+    // simply be ignored when interpreting data ("be liberal in what you
+    // accept").  Note that this means that any adjacent carriage return/
+    // line feed (CRLF) characters constitute "non-alphabet characters" and
+    // are ignored.  Furthermore, such specifications MAY ignore the pad
+    // character, "=", treating it as non-alphabet data, if it is present
+    // before the end of the encoded data.  If more than the allowed number
+    // of pad characters is found at the end of the string (e.g., a base 64
+    // string terminated with "==="), the excess pad characters MAY also be
+    // ignored.
+
+    // Non-Spec: We reject illegal and truncated Base64.
     switch (error.message) {
       case 'source is corrupt':
         if (body) {
@@ -1917,7 +1948,6 @@ MIME.decodeHeaderValueParameters = function(buffer) {
       // > > Am I correct?
       // > >
       // > > Thanks a lot in advance - RFC reading is a tricky mind exercise :-)
-
       header.parameters[name] = self.decodeHeaderEncodedWords(
         value
       ).toString('utf-8');
@@ -2354,6 +2384,14 @@ MIME.decodeQuotedPrintable = function(buffer, body) {
     return self.QuotedPrintable.decode(buffer, { qEncoding: !body });
   } catch (error) {
     if (error.message === 'illegal character') {
+      // RFC 2045 6.7 Quoted-Printable Content-Transfer-Encoding
+      // (4)  Control characters other than TAB, or CR and LF as
+      //      parts of CRLF pairs, must not appear. The same is true
+      //      for octets with decimal values greater than 126.  If
+      //      found in incoming quoted-printable data by a decoder, a
+      //      robust implementation might exclude them from the
+      //      decoded data and warn the user that illegal characters
+      //      were discovered.
       if (body) {
         throw new Error(self.Error.QuotedPrintableBodyIllegal);
       } else {
@@ -2482,14 +2520,14 @@ MIME.Address = function(name, email) {
 MIME.Base64 = require('@ronomon/base64');
 
 MIME.Error = {
-  Base64BodyIllegal: "550 Your email had a base64 encoded body containing " +
-    "illegal characters.\r\n",
-  Base64BodyTruncated: "550 Your email had a base64 encoded body which was " +
-    "truncated.\r\n",
+  Base64BodyIllegal: "550 Your email had a base64 body containing illegal " +
+    "characters (see RFC 2045 6.8 and RFC 4648 3.3).\r\n",
+  Base64BodyTruncated: "550 Your email had a base64 body which was " +
+    "truncated (see RFC 2045 6.8 and RFC 4648 3.3).\r\n",
   Base64WordIllegal: "550 Your email had a base64 encoded word containing " +
-    "illegal characters.\r\n",
+    "illegal characters (see RFC 2045 6.8 and RFC 4648 3.3).\r\n",
   Base64WordTruncated: "550 Your email had a base64 encoded word which was " +
-    "truncated.\r\n",
+    "truncated (see RFC 2045 6.8 and RFC 4648 3.3).\r\n",
   CharsetIllegal: "550 Your email had an illegal character sequence " +
     "(see RFC 2045 2.2, RFC 2046 4.1.2, RFC 2047 3 and RFC 2231).\r\n",
   CharsetTruncated: "550 Your email had an incomplete character sequence " +
@@ -2588,10 +2626,10 @@ MIME.Error = {
     "with whitespace (see RFC 2046 5.1.1).\r\n",
   PartLimit: "550 Your email had too many multipart parts (see RFC 2046).\r\n",
   PartMissing: "550 Your email had missing multipart parts (see RFC 2046).\r\n",
-  QuotedPrintableBodyIllegal: "550 Your email had a quoted-printable encoded " +
-    "body containing illegal characters.\r\n",
+  QuotedPrintableBodyIllegal: "550 Your email had a quoted-printable body " +
+    "containing illegal characters (see RFC 2045 6.7).\r\n",
   QuotedPrintableWordIllegal: "550 Your email had a quoted-printable encoded " +
-    "word containing illegal characters.\r\n",
+    "word containing illegal characters (see RFC 2045 6.7).\r\n",
   QuotedStringUnterminated: "550 Your email had a header with an " +
     "unterminated quoted-string (see RFC 5322 3.2.4).\r\n",
   SenderMissing: "550 Your email had multiple 'From' addresses and a " +
