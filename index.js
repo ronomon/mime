@@ -2385,7 +2385,8 @@ MIME.decodePartsValidateBoundary = function(string) {
   if (string.length > 70) {
     throw new Error(self.Error.PartBoundaryLimit);
   }
-  if (!/^[0-9a-zA-Z'()+_,\-.\/:=? ]+$/.test(string)) {
+  // Non-Spec: "@" is not part of `bcharsnospace` but is commonly used.
+  if (!/^[0-9a-zA-Z'()+_,\-.\/:=?@ ]+$/.test(string)) {
     throw new Error(self.Error.PartBoundaryCharactersForbidden);
   }
   if (/\s$/.test(string)) {
