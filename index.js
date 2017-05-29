@@ -374,6 +374,12 @@ MIME.decodeEntity = function(buffer) {
   // We allow a limit of 256 KB (Exchange has 64 KB, Sendmail has 32 KB).
   // Some folded header lines (together more than 1000 characters) may have many
   // addresses and we want to allow these.
+
+  // We have seen instances of headers joined to the body with only a single
+  // CRLF followed immediately by a multipart opening boundary. While we could
+  // detect the "--" as the start of the body, this would lead to multiple
+  // renderings among clients, i.e. some clients would treat the first part as a
+  // preamble instead.
   var limit = 262144;
   var index = 0;
   var length = Math.min(limit, buffer.length);
