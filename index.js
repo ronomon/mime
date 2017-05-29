@@ -2158,6 +2158,10 @@ MIME.decodeHeadersHeaderAssertCharacters = function(
   // when used in "folding" and "unfolding", as described in section
   // 2.2.3. All field bodies MUST conform to the syntax described in
   // sections 3 and 4 of this specification.
+
+  // RFC 2046 5.1.1 Common Syntax
+  // However, in no event are headers (either message headers or body part
+  // headers) allowed to contain anything other than US-ASCII characters.
   while (sourceStart < sourceEnd) {
     if (!self.decodeHeadersHeaderAssertCharactersTable[source[sourceStart]]) {
       throw new Error(self.Error.HeaderCharactersForbidden);
