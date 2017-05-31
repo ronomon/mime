@@ -1868,13 +1868,19 @@ MIME.decodeHeaderValueParameters = function(buffer) {
   for (var index = 0, length = parts.length; index < length; index++) {
     var part = parts[index];
     var equal = self.indexOf(part, 0, part.length, 61); // '='
-    if (equal === -1) throw new Error(self.Error.ParameterValueMissing);
     var name = self.slice(
       part,
       0,
-      equal,
+      equal === -1 ? part.length : equal,
       self.ASCII | self.LOWERCASE | self.TRIM
     );
+    if (equal === -1) {
+      if (name.length === 0) continue;
+      throw new Error(self.Error.ParameterValueMissing);
+    }
+    if (name.length === 0) {
+      throw new Error(self.Error.ParameterAttributeMissing);
+    }
     var value = self.decodeHeaderQuotedStrings(self.slice(
       part,
       equal + 1,
@@ -2619,6 +2625,8 @@ MIME.Error = {
     "(see RFC 5322 3.6).\r\n",
   MultipleSubject: "550 Your email had multiple 'Subject' headers " +
     "(see RFC 5322 3.6).\r\n",
+  ParameterAttributeMissing: "550 Your email had a header with a missing " +
+    "parameter attribute (see RFC 2045 5.1 and RFC 2183 2).\r\n",
   ParameterMultipleBoundary: "550 Your email had a header with multiple " +
     "boundary parameters (see RFC 2046 5.1.1).\r\n",
   ParameterMultipleCharset: "550 Your email had a header with multiple " +

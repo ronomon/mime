@@ -188,6 +188,37 @@ var tests = [
       parameters: { name: 'trojan."e"xe' }
     },
     null
+  ],
+  [
+    'text/plain;',
+    {
+      value: 'text/plain',
+      parameters: {}
+    },
+    null
+  ],
+  [
+    'text/plain; \t ',
+    {
+      value: 'text/plain',
+      parameters: {}
+    },
+    null
+  ],
+  [
+    'text/plain; \t =utf-8',
+    null,
+    MIME.Error.ParameterAttributeMissing
+  ],
+  [
+    'text/plain;=utf-8',
+    null,
+    MIME.Error.ParameterAttributeMissing
+  ],
+  [
+    'text/plain;charset',
+    null,
+    MIME.Error.ParameterValueMissing
   ]
 ];
 tests.forEach(
