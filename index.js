@@ -2237,7 +2237,7 @@ MIME.decodeParts = function(buffer, boundary) {
     if (boundary) {
       if (preamble) {
         preamble = false;
-      } else {
+      } else if (boundary.begin - index > 0) {
         parts.push(buffer.slice(index, boundary.begin));
       }
       if (boundary.closing) {
