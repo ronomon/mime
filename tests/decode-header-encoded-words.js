@@ -3,7 +3,7 @@ var random = common.random;
 var Test = common.Test;
 var MIME = require('../index.js');
 
-var namespace = 'MimeDecoder.decodeHeaderEncodedWords';
+var namespace = 'MIME.decodeHeaderEncodedWords';
 
 function generateCharset() {
   var buffers = [];
