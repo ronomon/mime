@@ -82,7 +82,7 @@ for (var key in MIME.Error) {
     /^550 .+\.\r\n$/.test(MIME.Error[key]),
     true,
     namespace,
-    'format: ' + MIME.Error[key]
+    'format: ' + JSON.stringify(MIME.Error[key])
   );
   // RFC 5321 4.5.3.1.5 Reply Line
   // The maximum total length of a reply line including the reply code and
