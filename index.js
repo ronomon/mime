@@ -813,7 +813,7 @@ MIME.decodeHeaderDate = function(buffer) {
   // The form "+0000" SHOULD be used to indicate a time zone at
   // Universal Time.
 
-  // Some BlackBerry email clients (e.g. 10.0.10.738) do not supply the zone.
+  // Some BlackBerry clients (e.g. version 10.0.10.738) do not supply the zone.
   // The date-time they provide is in UTC.
 
   // Non-Spec: We accept a missing time zone and assume UTC.
