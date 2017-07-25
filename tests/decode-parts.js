@@ -190,6 +190,18 @@ function generateParts(crlf, boundary, expected) {
   return parts.join(crlf);
 }
 
+function generatePartsCount(count, pattern) {
+  // var pattern = Buffer.from('--' + boundary, 'ascii');
+  var parts = [Buffer.from('prelude\r\n', 'ascii')];
+  for (var index = 0; index < count; index++) {
+    parts.push(Buffer.from('--' + pattern + '\r\n', 'ascii'));
+    parts.push(Buffer.from('part ' + (index + 1) + '\r\n', 'ascii'));
+  }
+  parts.push(Buffer.from('--' + pattern + '--\r\n', 'ascii'));
+  parts.push(Buffer.from('epilogue\r\n', 'ascii'));
+  return Buffer.concat(parts);
+}
+
 var samples = [];
 var length = 1000;
 while (length--) {
@@ -436,3 +448,27 @@ samples.forEach(
     }
   }
 );
+
+Test.equal(
+  MIME.decodeParts(generatePartsCount(10000, 'abc'), 'abc').length,
+  10000,
+  'MIME.decodeParts',
+  'limit: 10000'
+);
+
+try {
+  MIME.decodeParts(generatePartsCount(10000 + 1, 'abc'), 'abc');
+  Test.equal(
+    undefined,
+    MIME.Error.PartLimit,
+    'MIME.decodeParts',
+    'limit: 10001'
+  );
+} catch (error) {
+  Test.equal(
+    error.message,
+    MIME.Error.PartLimit,
+    'MIME.decodeParts',
+    'limit: 10001'
+  );
+}

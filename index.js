@@ -2231,7 +2231,7 @@ MIME.decodeParts = function(buffer, boundary) {
   var pattern = Buffer.from('--' + boundary, 'ascii');
   var preamble = true;
   var index = 0;
-  var limit = 10000;
+  var limit = 10000 + 1; // Allow at most 10000 parts.
   while (limit--) {
     var boundary = self.decodePartsFindBoundary(buffer, pattern, index);
     if (boundary) {
@@ -2249,7 +2249,7 @@ MIME.decodeParts = function(buffer, boundary) {
       throw new Error(self.Error.PartMissing);
     }
   }
-  if (limit === 0) throw new Error(self.Error.PartLimit);
+  if (limit < 0) throw new Error(self.Error.PartLimit);
   return parts;
 };
 
