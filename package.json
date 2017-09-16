@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@ronomon/base64": "^2.1.0",
-    "@ronomon/quoted-printable": "^2.1.0",
+    "@ronomon/quoted-printable": "^3.0.0",
     "iconv": "^2.3.0"
   }
 }
