@@ -2210,8 +2210,8 @@ MIME.decodeHeadersHeaderAssertUnique = function(headers, name) {
         throw new Error(self.Error.MultipleFrom);
       case 'in-reply-to':
         throw new Error(self.Error.MultipleInReplyTo);
-      case 'message-id':
-        throw new Error(self.Error.MultipleMessageID);
+      // case 'message-id':
+      //   throw new Error(self.Error.MultipleMessageID);
       case 'references':
         throw new Error(self.Error.MultipleReferences);
       case 'reply-to':
