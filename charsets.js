@@ -98,6 +98,8 @@ canon['WINDOWS949'] = 'CP949';
 canon['XUHC'] = 'CP949';
 canon['XWIN949'] = 'CP949';
 canon['XWINDOWS949'] = 'CP949';
+// ANSI_X3.110-1983 is an ancient character set almost identical to ISO-8859-1:
+canon['ANSIX31101983'] = 'ISO88591';
 var string = '{\n';
 Object.keys(canon).sort().forEach(
   function(key) {

@@ -226,6 +226,7 @@ MIME.decodeCharset = function(source, charset) {
 };
 
 MIME.decodeCharsetCanon = {
+  ANSIX31101983: 'ISO88591',
   ARMSCII8: 'ARMSCII-8',
   ASCII: 'ASCII',
   ATARIST: 'ATARIST',
