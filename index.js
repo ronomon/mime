@@ -2759,11 +2759,13 @@ MIME.encodeHeaderReceived = function(received) {
   if (Math.floor(received.timestamp) !== received.timestamp) {
     throw new Error('timestamp must be an integer');
   }
-  if (typeof received.offset !== 'number') {
-    throw new Error('offset in minutes must be a number');
-  }
-  if (Math.floor(received.offset) !== received.offset) {
-    throw new Error('offset in minutes must be an integer');
+  if (received.offset !== undefined) {
+    if (typeof received.offset !== 'number') {
+      throw new Error('offset in minutes must be a number');
+    }
+    if (Math.floor(received.offset) !== received.offset) {
+      throw new Error('offset in minutes must be an integer');
+    }
   }
 
   var stamp = [];
