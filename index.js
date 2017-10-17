@@ -2485,6 +2485,33 @@ MIME.decodeQuotedPrintable = function(buffer, body) {
   }
 };
 
+MIME.encodeHeaderFold = function(line) {
+  var self = this;
+  // RFC 5322 2.1.1 Line Length Limits
+  // There are two limits that this specification places on the number of
+  // characters in a line. Each line of characters MUST be no more than
+  // 998 characters, and SHOULD be no more than 78 characters, excluding
+  // the CRLF.
+
+  // RFC 5322 2.2.3 Long Header Fields
+  // Each header field is logically a single line of characters comprising
+  // the field name, the colon, and the field body. For convenience
+  // however, and to deal with the 998/78 character limitations per line,
+  // the field body portion of a header field can be split into a
+  // multiple-line representation; this is called "folding". The general
+  // rule is that wherever this specification allows for folding white
+  // space (not simply WSP characters), a CRLF may be inserted before any
+  // WSP.
+  var lineLength = line.length;
+  var crlf = (
+    lineLength >= 2 &&
+    line[lineLength - 2] === 13 &&
+    line[lineLength - 1] === 10
+  ) ? 2 : 0;
+
+  // TO DO: Work in progress.
+};
+
 MIME.encodeHeaderReceived = function(received) {
   var self = this;
   // RFC 5321 3.7.2 Received Lines in Gatewaying
