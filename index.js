@@ -34,11 +34,11 @@ MIME.ASCII = 1;
 MIME.LOWERCASE = 2;
 MIME.UPPERCASE = 4;
 MIME.TRIM = 8;
-MIME.WHITESPACE = Buffer.alloc(256);
-MIME.WHITESPACE[9] = 1;
-MIME.WHITESPACE[10] = 1;
-MIME.WHITESPACE[13] = 1;
-MIME.WHITESPACE[32] = 1;
+MIME.FWS = Buffer.alloc(256);
+MIME.FWS[9] = 1;
+MIME.FWS[10] = 1;
+MIME.FWS[13] = 1;
+MIME.FWS[32] = 1;
 
 MIME.decodeBase64 = function(buffer, body) {
   var self = this;
@@ -1223,11 +1223,11 @@ MIME.decodeHeaderEncodedWordBeforeParsingStructure = function(source) {
   var sourceStart = 0;
   var sourceLength = source.length;
   // Adjust sourceStart to remove leading whitespace:
-  while (sourceStart < sourceLength && self.WHITESPACE[source[sourceStart]]) {
+  while (sourceStart < sourceLength && self.FWS[source[sourceStart]]) {
     sourceStart++;
   }
   // Adjust sourceLength to remove trailing whitespace:
-  while (sourceLength > 0 && self.WHITESPACE[source[sourceLength - 1]]) {
+  while (sourceLength > 0 && self.FWS[source[sourceLength - 1]]) {
     sourceLength--;
   }
   if (
@@ -1413,7 +1413,7 @@ MIME.decodeHeaderEncodedWordsWSP = function(
 ) {
   var self = this;
   while (sourceIndex < sourceLength) {
-    if (self.WHITESPACE[source[sourceIndex]]) {
+    if (self.FWS[source[sourceIndex]]) {
       sourceIndex++;
     } else {
       return false;
@@ -2467,11 +2467,11 @@ MIME.slice = function(source, sourceStart, sourceLength, flags) {
   if (sourceLength < 0) throw new Error('sourceLength < 0');
   if (flags & self.TRIM) {
     // Adjust sourceStart to remove leading whitespace:
-    while (sourceStart < sourceLength && self.WHITESPACE[source[sourceStart]]) {
+    while (sourceStart < sourceLength && self.FWS[source[sourceStart]]) {
       sourceStart++;
     }
     // Adjust sourceLength to remove trailing whitespace:
-    while (sourceLength > 0 && self.WHITESPACE[source[sourceLength - 1]]) {
+    while (sourceLength > 0 && self.FWS[source[sourceLength - 1]]) {
       sourceLength--;
     }
   }
