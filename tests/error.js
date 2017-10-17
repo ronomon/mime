@@ -11,7 +11,31 @@ var internal = {
   'matched false positive encoded-word': 1,
   'sourceStart > sourceLength': 1,
   'sourceStart < 0': 1,
-  'sourceLength < 0': 1
+  'sourceLength < 0': 1,
+  // encodeHeaderReceived errors:
+  'From-domain must be a string': 1,
+  'From-domain must be a valid domain': 1,
+  'TCP-info ip must be a string': 1,
+  'TCP-info ip must be a valid IPv4 or IPv6 address': 1,
+  'By-domain must be provided': 1,
+  'By-domain must be a string': 1,
+  'By-domain must be a valid domain': 1,
+  'Via must be a string': 1,
+  'Via must be a valid atom': 1,
+  'Protocol must be a string': 1,
+  'Protocol must be a registered protocol type': 1,
+  'ID must be a string': 1,
+  'ID must be a valid atom or msg-id': 1,
+  'From-domain must be provided if TCP-info is provided': 1,
+  'From-domain must be provided in an SMTP environment': 1,
+  'For recipient must be a string': 1,
+  'For recipient must be a valid path or mailbox': 1,
+  'timestamp must be provided': 1,
+  'timestamp must be a number': 1,
+  'timestamp must be an integer': 1,
+  'offset in minutes must be a number': 1,
+  'offset in minutes must be an integer': 1,
+  'at least one non-empty clause must be provided': 1
 };
 var used = {};
 var filename = path.resolve(path.dirname(module.filename), '../index.js');

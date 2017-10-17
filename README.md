@@ -136,6 +136,8 @@ anti-virus software.
 
 * [RFC 5322](https://tools.ietf.org/html/rfc5322) - Internet Message Format.
 
+* [RFC 5321](https://tools.ietf.org/html/rfc5321) - Simple Mail Transfer Protocol.
+
 * [RFC 2045](https://tools.ietf.org/html/rfc2045) - Multipurpose Internet Mail
 Extensions (MIME) Part One: Format of Internet Message Bodies.
 

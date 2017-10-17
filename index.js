@@ -1,9 +1,16 @@
+var Node = {
+  net: require('net')
+};
+
 var MIME = {};
 
 // REFERENCE SPECIFICATIONS:
 //
 // https://tools.ietf.org/html/rfc5322
 // Internet Message Format
+//
+// https://tools.ietf.org/html/rfc5321
+// Simple Mail Transfer Protocol
 //
 // https://tools.ietf.org/html/rfc822
 // ARPA Internet Text Messages
@@ -27,6 +34,9 @@ var MIME = {};
 // MIME Parameter Value and Encoded Word Extensions:
 // Character Sets, Languages, and Continuations
 //
+// https://tools.ietf.org/html/rfc3848
+// ESMTP and LMTP Transmission Types Registration
+//
 // https://tools.ietf.org/html/rfc7103
 // Advice for Safe Handling of Malformed Messages
 
@@ -39,6 +49,55 @@ MIME.FWS[9] = 1;
 MIME.FWS[10] = 1;
 MIME.FWS[13] = 1;
 MIME.FWS[32] = 1;
+
+MIME.ATEXT = (function() {
+  // RFC 5322 3.2.3 Atom
+  // atext           =   ALPHA / DIGIT /    ; Printable US-ASCII
+  //                     "!" / "#" /        ; characters not including
+  //                     "$" / "%" /        ; specials. Used for atoms.
+  //                     "&" / "'" /
+  //                     "*" / "+" /
+  //                     "-" / "/" /
+  //                     "=" / "?" /
+  //                     "^" / "_" /
+  //                     "`" / "{" /
+  //                     "|" / "}" /
+  //                     "~"
+  // atom            =   [CFWS] 1*atext [CFWS]
+  var table = Buffer.alloc(256);
+  for (var index = 48; index <= 57; index++) table[index] = 1; // [0-9]
+  for (var index = 65; index <= 90; index++) table[index] = 1; // [A-Z]
+  for (var index = 97; index <= 122; index++) table[index] = 1; // [a-z]
+  var map = "!#$%&'*+-/=?^_`{|}~";
+  for (var index = 0, length = map.length; index < length; index++) {
+    table[map.charCodeAt(index)] = 1;
+  }
+  return table;
+})();
+
+MIME.DTEXT = (function() {
+  // RFC 5322 3.4.1 Addr-Spec Specification
+  // dtext           =   %d33-90 /          ; Printable US-ASCII
+  //                     %d94-126 /         ;  characters not including
+  //                     obs-dtext          ;  "[", "]", or "\"
+  var table = Buffer.alloc(256);
+  for (var index = 33; index <= 90; index++) table[index] = 1;
+  for (var index = 94; index <= 126; index++) table[index] = 1;
+  return table;
+})();
+
+MIME.QTEXT = (function() {
+  // RFC 5322 3.2.4 Quoted Strings
+  // qtext           =   %d33 /             ; Printable US-ASCII
+  //                     %d35-91 /          ;  characters not including
+  //                     %d93-126 /         ;  "\" or the quote character
+  //                     obs-qtext
+  var table = Buffer.alloc(256);
+  table[33] = 1;
+  for (var index = 35; index <= 91; index++) table[index] = 1;
+  for (var index = 93; index <= 126; index++) table[index] = 1;
+  return table;
+})();
 
 MIME.decodeBase64 = function(buffer, body) {
   var self = this;
@@ -2426,6 +2485,333 @@ MIME.decodeQuotedPrintable = function(buffer, body) {
   }
 };
 
+MIME.encodeHeaderReceived = function(received) {
+  var self = this;
+  // RFC 5321 3.7.2 Received Lines in Gatewaying
+  // 
+  // When forwarding a message into or out of the Internet environment, a
+  // gateway MUST prepend a Received: line, but it MUST NOT alter in any
+  // way a Received: line that is already in the header section.
+  //
+  // "Received:" header fields of messages originating from other
+  // environments may not conform exactly to this specification.  However,
+  // the most important use of Received: lines is for debugging mail
+  // faults, and this debugging can be severely hampered by well-meaning
+  // gateways that try to "fix" a Received: line.  As another consequence
+  // of trace header fields arising in non-SMTP environments, receiving
+  // systems MUST NOT reject mail based on the format of a trace header
+  // field and SHOULD be extremely robust in the light of unexpected
+  // information or formats in those header fields.
+
+  // RFC 5321 4.4 Trace Information
+  //
+  // When an SMTP server receives a message for delivery or further
+  // processing, it MUST insert trace ("time stamp" or "Received")
+  // information at the beginning of the message content, as discussed in
+  // Section 4.1.1.4.
+  //
+  // This line MUST be structured as follows:
+  // 
+  // o  The FROM clause, which MUST be supplied in an SMTP environment,
+  //    SHOULD contain both (1) the name of the source host as presented
+  //    in the EHLO command and (2) an address literal containing the IP
+  //    address of the source, determined from the TCP connection.
+  //
+  // o  The ID clause MAY contain an "@" as suggested in RFC 822, but this
+  //    is not required.
+  //
+  // o  If the FOR clause appears, it MUST contain exactly one <path>
+  //    entry, even when multiple RCPT commands have been given. Multiple
+  //    <path>s raise some security issues and have been deprecated, see
+  //    Section 7.2.
+  //
+  // An Internet mail program MUST NOT change or delete a Received: line
+  // that was previously added to the message header section. SMTP
+  // servers MUST prepend Received lines to messages; they MUST NOT change
+  // the order of existing lines or insert Received lines in any other
+  // location.
+  //
+  // As the Internet grows, comparability of Received header fields is
+  // important for detecting problems, especially slow relays. SMTP
+  // servers that create Received header fields SHOULD use explicit
+  // offsets in the dates (e.g., -0800), rather than time zone names of
+  // any type. Local time (with an offset) SHOULD be used rather than UT
+  // when feasible. This formulation allows slightly more information
+  // about local circumstances to be specified. If UT is needed, the
+  // receiver need merely do some simple arithmetic to convert the values.
+  // Use of UT loses information about the time zone-location of the
+  // server. If it is desired to supply a time zone name, it SHOULD be
+  // included in a comment.
+
+  // RFC 5321 4.4 Trace Information
+  // Time-stamp-line  = "Received:" FWS Stamp <CRLF>
+  //
+  // Stamp          = From-domain By-domain Opt-info [CFWS] ";"
+  //                FWS date-time
+  //                ; where "date-time" is as defined in RFC 5322 [4]
+  //                ; but the "obs-" forms, especially two-digit
+  //                ; years, are prohibited in SMTP and MUST NOT be used.
+  //
+  // From-domain    = "FROM" FWS Extended-Domain
+  //
+  // By-domain      = CFWS "BY" FWS Extended-Domain
+  //
+  // Extended-Domain  = Domain /
+  //                  ( Domain FWS "(" TCP-info ")" ) /
+  //                  ( address-literal FWS "(" TCP-info ")" )
+  //
+  // TCP-info       = address-literal / ( Domain FWS address-literal )
+  //                ; Information derived by server from TCP connection
+  //                ; not client EHLO.
+  //
+  // Opt-info       = [Via] [With] [ID] [For]
+  //                [Additional-Registered-Clauses]
+  //
+  // Via            = CFWS "VIA" FWS Link
+  //
+  // With           = CFWS "WITH" FWS Protocol
+  //
+  // ID             = CFWS "ID" FWS ( Atom / msg-id )
+  //                ; msg-id is defined in RFC 5322 [4]
+  //
+  // For            = CFWS "FOR" FWS ( Path / Mailbox )
+  //
+  // Additional-Registered-Clauses  = CFWS Atom FWS String
+  //                                ; Additional standard clauses may be
+  //                                added in this
+  //                                ; location by future standards and
+  //                                registration with
+  //                                ; IANA. SMTP servers SHOULD NOT use
+  //                                unregistered
+  //                                ; names. See Section 8.
+  //
+  // Link           = "TCP" / Addtl-Link
+  //
+  // Addtl-Link     = Atom
+  //                ; Additional standard names for links are
+  //                ; registered with the Internet Assigned Numbers
+  //                ; Authority (IANA).  "Via" is primarily of value
+  //                ; with non-Internet transports.  SMTP servers
+  //                ; SHOULD NOT use unregistered names.
+  //
+  // Protocol       = "ESMTP" / "SMTP" / Attdl-Protocol
+  //
+  // Attdl-Protocol = Atom
+  //                ; Additional standard names for protocols are
+  //                ; registered with the Internet Assigned Numbers
+  //                ; Authority (IANA) in the "mail parameters"
+  //                ; registry [9].  SMTP servers SHOULD NOT
+  //                ; use unregistered names.
+
+  // RFC 5321 7.2 "Blind" Copies
+  // Especially when more than one RCPT command is present, and in order
+  // to avoid defeating some of the purpose of these mechanisms, SMTP
+  // clients and servers SHOULD NOT copy the full set of RCPT command
+  // arguments into the header section, either as part of trace header
+  // fields or as informational or private-extension header fields.
+
+  // RFC 3848 1 IANA Considerations
+  //
+  // As directed by SMTP [2], IANA maintains a registry [7] of "WITH
+  // protocol types" for use in the "with" clause of the Received header
+  // in an Internet message. This registry presently includes SMTP [6],
+  // and ESMTP [2]. This specification updates the registry as follows:
+  //
+  // o  The new keyword "ESMTPA" indicates the use of ESMTP when the SMTP
+  //    AUTH [3] extension is also used and authentication is successfully
+  //    achieved.
+  //
+  // o  The new keyword "ESMTPS" indicates the use of ESMTP when STARTTLS
+  //    [1] is also successfully negotiated to provide a strong transport
+  //    encryption layer.
+  //
+  // o  The new keyword "ESMTPSA" indicates the use of ESMTP when both
+  //    STARTTLS and SMTP AUTH are successfully negotiated (the
+  //    combination of ESMTPS and ESMTPA).
+  //
+  // o  The new keyword "LMTP" indicates the use of LMTP [4].
+  //
+  // o  The new keyword "LMTPA" indicates the use of LMTP when the SMTP
+  //    AUTH extension is also used and authentication is successfully
+  //    achieved.
+  //
+  // o  The new keyword "LMTPS" indicates the use of LMTP when STARTTLS is
+  //    also successfully negotiated to provide a strong transport
+  //    encryption layer.
+  //
+  // o  The new keyword "LMTPSA" indicates the use of LMTP when both
+  //    STARTTLS and SMTP AUTH are successfully negotiated (the
+  //    combination of LSMTPS and LSMTPA).
+  
+  if (received.from !== undefined) {
+    if (typeof received.from !== 'string') {
+      throw new Error('From-domain must be a string');
+    }
+    if (!self.isDomain(Buffer.from(received.from))) {
+      throw new Error('From-domain must be a valid domain');
+    }
+  }
+  if (received.ip !== undefined) {
+    if (typeof received.ip !== 'string') {
+      throw new Error('TCP-info ip must be a string');
+    }
+    if (!Node.net.isIP(received.ip)) {
+      throw new Error('TCP-info ip must be a valid IPv4 or IPv6 address');
+    }
+  }
+  if (received.by === undefined) {
+    throw new Error('By-domain must be provided');
+  }
+  if (typeof received.by !== 'string') {
+    throw new Error('By-domain must be a string');
+  }
+  if (!self.isDomain(Buffer.from(received.by))) {
+    throw new Error('By-domain must be a valid domain');
+  }
+  if (received.via !== undefined) {
+    if (typeof received.via !== 'string') {
+      throw new Error('Via must be a string');
+    }
+    if (!self.isAtom(Buffer.from(received.via))) {
+      throw new Error('Via must be a valid atom');
+    }
+  }
+  if (received.protocol !== undefined) {
+    if (typeof received.protocol !== 'string') {
+      throw new Error('Protocol must be a string');
+    }
+    if (
+      !/^(ESMTP|ESMTPS|ESMTPSA|HTTP|LMTP|LMTPA|LMTPS|LMTPSA|SMTP)$/.test(
+        received.protocol
+      )
+    ) {
+      throw new Error('Protocol must be a registered protocol type');
+    }
+  }
+  if (received.id !== undefined) {
+    if (typeof received.id !== 'string') {
+      throw new Error('ID must be a string');
+    }
+    // RFC 5322 is less restrictive: word / angle-addr / addr-spec / domain
+    // But RFC 5322 specifically indicates that RFC 5321 is more restrictive.
+    // We follow the more restrictive specification for encoding:
+    var receivedIDBuffer = Buffer.from(received.id);
+    if (
+      !self.isAtom(receivedIDBuffer) &&
+      !self.isMsgID(receivedIDBuffer)
+    ) {
+      throw new Error('ID must be a valid atom or msg-id');
+    }
+  }
+  if (!received.from) {
+    if (received.ip) {
+      throw new Error('From-domain must be provided if TCP-info is provided');
+    }
+    if (/SMTP/.test(received.protocol)) {
+      throw new Error('From-domain must be provided in an SMTP environment');
+    }
+  }
+  if (received.recipient !== undefined) {
+    if (typeof received.recipient !== 'string') {
+      throw new Error('For recipient must be a string');
+    }
+    var receivedRecipientBuffer = Buffer.from(received.recipient);
+    if (
+      !self.isPath(receivedRecipientBuffer) &&
+      !self.isMailbox(receivedRecipientBuffer)
+    ) {
+      throw new Error('For recipient must be a valid path or mailbox');
+    }
+  }
+  if (received.timestamp === undefined) {
+    throw new Error('timestamp must be provided');
+  }
+  if (typeof received.timestamp !== 'number') {
+    throw new Error('timestamp must be a number');
+  }
+  if (Math.floor(received.timestamp) !== received.timestamp) {
+    throw new Error('timestamp must be an integer');
+  }
+  if (typeof received.offset !== 'number') {
+    throw new Error('offset in minutes must be a number');
+  }
+  if (Math.floor(received.offset) !== received.offset) {
+    throw new Error('offset in minutes must be an integer');
+  }
+
+  var stamp = [];
+  if (received.from) {
+    stamp.push('from');
+    stamp.push(received.from);
+    if (received.ip) {
+      stamp.push('(' + received.from + ' [' + received.ip + '])');
+    }
+  }
+  stamp.push('by');
+  stamp.push(received.by);
+  if (received.via) {
+    stamp.push('via');
+    stamp.push(received.via);
+  }
+  if (received.protocol) {
+    stamp.push('with');
+    stamp.push(received.protocol);
+  }
+  if (received.id) {
+    stamp.push('id');
+    stamp.push(received.id);
+  }
+  if (received.recipient) {
+    stamp.push('for');
+    stamp.push(received.recipient);
+  }
+  if (stamp.length === 0) {
+    throw new Error('at least one non-empty clause must be provided');
+  }
+  // Add semicolon to penultimate clause:
+  stamp[stamp.length - 1] = stamp[stamp.length - 1] + ';';
+  // Fri, 13 Oct 2017 09:08:14 -0400 (EDT)
+  if (received.offset === undefined) {
+    // The getTimezoneOffset() method returns the time zone difference,
+    // in minutes, from UTC to current locale (host system settings).
+    var minutes = -new Date().getTimezoneOffset();
+  } else {
+    var minutes = received.offset;
+  }
+  var date = new Date(received.timestamp + (minutes * 60 * 1000)).toUTCString();
+  // Remove " GMT" and add local offset (hhmm):
+  date = date.slice(0, -4);
+  var negative = minutes < 0;
+  if (negative) minutes = -minutes;
+  var hours = 0;
+  while (minutes >= 60) {
+    hours++;
+    minutes -= 60;
+  }
+  hours = hours.toString();
+  while (hours.length < 2) hours = '0' + hours;
+  minutes = minutes.toString();
+  while (minutes.length < 2) minutes = '0' + minutes;
+  date = date + ' ' + (negative ? '-' : '+') + hours + minutes;
+  stamp.push(date);
+
+  // We fold at a higher syntactic level by folding between clauses rather than
+  // within clauses (a simple fold algorithm might fold between date fields):
+  var lines = 'Received:';
+  var lineLength = lines.length;
+  for (var index = 0, length = stamp.length; index < length; index++) {
+    var clause = stamp[index];
+    if (lineLength + 1 + clause.length > 78) {
+      lines += '\r\n';
+      lineLength = 0;
+    }
+    lines += ' ' + clause;
+    lineLength += 1 + clause.length;
+  }
+  lines += '\r\n';
+  return Buffer.from(lines, 'utf-8');
+};
+
 MIME.indexOf = function(source, sourceStart, sourceEnd, code) {
   var self = this;
   while (sourceStart < sourceEnd) {
@@ -2457,6 +2843,368 @@ MIME.indexOutsideQuotes = function(source, sourceIndex, sourceLength, code) {
     sourceIndex++;
   }
   return -1;
+};
+
+MIME.isAText = MIME.isAtom = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  if (sourceIndex >= sourceLength) return false;
+  while (sourceIndex < sourceLength) {
+    if (!self.ATEXT[source[sourceIndex]]) return false;
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isAddrSpec = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4.1 Addr-Spec Specification
+  // addr-spec       =   local-part "@" domain
+  if (sourceIndex >= sourceLength) return false;
+  var index = self.indexOutsideQuotes(source, sourceIndex, sourceLength, 64);
+  if (index === -1) return false;
+  return (
+    self.isLocalPart(source, sourceIndex, index) &&
+    self.isDomain(source, index + 1, sourceLength)
+  );
+};
+
+MIME.isAngleAddr = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4 Address Specification
+  // angle-addr      =   [CFWS] "<" addr-spec ">" [CFWS] / obs-angle-addr
+  if (sourceLength - sourceIndex < 2) return false;
+  if (source[sourceIndex] !== 60) return false; // <
+  if (source[sourceLength - 1] !== 62) return false; // >
+  sourceIndex++;
+  sourceLength--;
+  return self.isAddrSpec(source, sourceIndex, sourceLength);
+};
+
+MIME.isDText = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  if (sourceIndex >= sourceLength) return false;
+  while (sourceIndex < sourceLength) {
+    if (!self.DTEXT[source[sourceIndex]]) return false;
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isDomain = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4.1 Addr-Spec Specification
+  // domain          =   dot-atom / domain-literal / obs-domain
+  return (
+    self.isDotAtom(source, sourceIndex, sourceLength) ||
+    self.isDomainLiteral(source, sourceIndex, sourceLength)
+  );
+};
+
+MIME.isDomainLiteral = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4.1 Addr-Spec Specification
+  // domain-literal  =   [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
+
+  // N.B.: We do not enforce valid IPv4 or IPv6 addresses here.
+  if (sourceLength - sourceIndex < 2) return false;
+  if (source[sourceIndex] !== 91) return false; // [
+  if (source[sourceLength - 1] !== 93) return false; // ]
+  if (sourceLength - sourceIndex === 2) return true;
+  sourceIndex++;
+  sourceLength--;
+  while (sourceIndex < sourceLength) {
+    if (
+      !self.DTEXT[source[sourceIndex]] &&
+      !self.FWS[source[sourceIndex]]
+    ) {
+      return false;
+    }
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isDotAtom = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.2.3 Atom
+  // dot-atom-text   =   1*atext *("." 1*atext)
+  // dot-atom        =   [CFWS] dot-atom-text [CFWS]
+  if (sourceIndex >= sourceLength) return false;
+  while (sourceIndex < sourceLength) {
+    if (!self.ATEXT[source[sourceIndex]]) {
+      // Must be a dot (46) if not atext:
+      if (source[sourceIndex] !== 46) return false;
+      // Dot must be between atext:
+      // Do not allow two consecutive dots:
+      if (
+        sourceIndex - 1 < 0 ||
+        sourceIndex + 1 >= sourceLength ||
+        source[sourceIndex - 1] === 46 ||
+        source[sourceIndex + 1] === 46
+      ) {
+        return false;
+      }
+    }
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isLocalPart = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4.1 Addr-Spec Specification
+  // local-part      =   dot-atom / quoted-string / obs-local-part
+
+  // RFC 5321 4.1.2 Command Argument Syntax
+  // While the above definition for Local-part is relatively permissive,
+  // for maximum interoperability, a host that expects to receive mail
+  // SHOULD avoid defining mailboxes where the Local-part requires (or
+  // uses) the Quoted-string form or where the Local-part is case-
+  // sensitive.
+
+  // Note: Gmail rejects a quoted-string local-part in a MAIL FROM: return-path.
+  return (
+    self.isDotAtom(source, sourceIndex, sourceLength) ||
+    self.isQuotedString(source, sourceIndex, sourceLength)
+  );
+};
+
+MIME.isMailbox = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4 Address Specification
+  // mailbox         =   name-addr / addr-spec
+  return (
+    self.isNameAddr(source, sourceIndex, sourceLength) ||
+    self.isAddrSpec(source, sourceIndex, sourceLength)
+  );
+};
+
+MIME.isMsgID = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.6.4 Identification Fields
+  // msg-id          =   [CFWS] "<" id-left "@" id-right ">" [CFWS]
+  // id-left         =   dot-atom-text / obs-id-left
+  // id-right        =   dot-atom-text / no-fold-literal / obs-id-right
+  // no-fold-literal =   "[" *dtext "]"
+  if (sourceLength - sourceIndex < 2) return false;
+  if (source[sourceIndex] !== 60) return false; // <
+  if (source[sourceLength - 1] !== 62) return false; // >
+  sourceIndex++;
+  sourceLength--;
+  var index = self.indexOf(source, sourceIndex, sourceLength, 64); // @
+  if (index === -1) return false;
+  if (index === sourceIndex) return false;
+  if (index === sourceLength - 1) return false;
+  // id-left:
+  if (!self.isDotAtom(source, sourceIndex, index)) return false;
+  // id-right:
+  return (
+    self.isDotAtom(source, index + 1, sourceLength) ||
+    self.isNoFoldLiteral(source, index + 1, sourceLength)
+  );
+};
+
+MIME.isNameAddr = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.4 Address Specification
+  // name-addr       =   [display-name] angle-addr
+  // angle-addr      =   [CFWS] "<" addr-spec ">" [CFWS] / obs-angle-addr
+  // display-name    =   phrase
+  var index = self.indexOutsideQuotes(source, sourceIndex, sourceLength, 60);
+  if (index === -1) return false;
+  if (!self.isAngleAddr(source, index, sourceLength)) return false;
+  if (index === sourceIndex) return true;
+  index--;
+  while (index > sourceIndex) {
+    if (!self.FWS[source[index]]) break;
+    index--;
+  }
+  return self.isPhrase(source, sourceIndex, index + 1);
+};
+
+MIME.isNoFoldLiteral = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.6.4 Identification Fields
+  // no-fold-literal =   "[" *dtext "]"
+  if (sourceLength - sourceIndex < 2) return false;
+  if (source[sourceIndex] !== 91) return false; // [
+  if (source[sourceLength - 1] !== 93) return false; // ]
+  sourceIndex++;
+  sourceLength--;
+  return (
+    sourceIndex === sourceLength ||
+    self.isDText(source, sourceIndex, sourceLength)
+  );
+};
+
+MIME.isPath = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.6.7 Trace Fields
+  // path            =   angle-addr / ([CFWS] "<" [CFWS] ">" [CFWS])
+  if (self.isAngleAddr(source, sourceIndex, sourceLength)) return true;
+  return (
+    sourceLength - sourceIndex === 2 &&
+    source[sourceIndex] === 60 &&
+    source[sourceLength - 1] === 62
+  );
+};
+
+MIME.isPhrase = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.2.5 Miscellaneous Tokens
+  // word            =   atom / quoted-string
+  // phrase          =   1*word / obs-phrase
+  return (
+    self.isAtom(source, sourceIndex, sourceLength) ||
+    self.isQuotedString(source, sourceIndex, sourceLength)
+  );
+};
+
+MIME.isQContent = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.2.4 Quoted Strings
+  // qcontent        =   qtext / quoted-pair
+  //
+  // quoted-string   =   [CFWS]
+  //                     DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+  //                     [CFWS]
+  if (sourceIndex >= sourceLength) return false;
+  while (sourceIndex < sourceLength) {
+    // We consider FWS as part of qcontent since FWS is considered part of a
+    // quoted-string ([FWS] qcontent).
+    if (
+      !self.QTEXT[source[sourceIndex]] &&
+      !self.FWS[source[sourceIndex]]
+    ) {
+      if (
+        self.isQuotedPair(
+          source,
+          sourceIndex,
+          Math.min(sourceIndex + 2, sourceLength)
+        )
+      ) {
+        sourceIndex++; // Consume second character in quoted-pair.
+      } else {
+        return false;
+      }
+    }
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isQText = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  if (sourceIndex >= sourceLength) return false;
+  while (sourceIndex < sourceLength) {
+    if (!self.QTEXT[source[sourceIndex]]) return false;
+    sourceIndex++;
+  }
+  return true;
+};
+
+MIME.isQuotedPair = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.2.1 Quoted characters
+  // quoted-pair     =   ("\" (VCHAR / WSP)) / obs-qp
+
+  // RFC 5234 B.1 Core Rules
+  // VCHAR          =   %x21-7E (33-126 inclusive)
+  // WSP            =   SP / HTAB
+  if (sourceLength - sourceIndex != 2) return false;
+  if (source[sourceIndex] !== 92) return false; // "\"
+  return (
+    source[sourceIndex + 1] === 9 ||
+    source[sourceIndex + 1] === 32 ||
+    (source[sourceIndex + 1] >= 33 && source[sourceIndex + 1] <= 126)
+  );
+};
+
+MIME.isQuotedString = function(
+  source,
+  sourceIndex = 0,
+  sourceLength = source.length
+) {
+  var self = this;
+  // RFC 5322 3.2.4 Quoted Strings
+  // quoted-string   =   [CFWS]
+  //                     DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+  //                     [CFWS]
+  if (sourceLength - sourceIndex < 2) return false;
+  if (source[sourceIndex] !== 34) return false; // "
+  if (source[sourceLength - 1] !== 34) return false; // "
+  return (
+    sourceLength - sourceIndex === 2 ||
+    self.isQContent(source, sourceIndex + 1, sourceLength - 1)
+  );
 };
 
 MIME.slice = function(source, sourceStart, sourceLength, flags) {
