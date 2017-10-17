@@ -80,8 +80,8 @@ issues).
 * Rejects Base64 data which is clearly truncated (as opposed to just missing
 padding).
 
-* Rejects Quoted-Printable data containing illegal characters (anything which is
-not a valid Quoted-Printable character, e.g. null bytes which could cause
+* Corrects Quoted-Printable data containing illegal characters (anything which
+is not a valid Quoted-Printable character, e.g. null bytes which could cause
 security issues).
 
 * Rejects illegal character sequences according to the specified `charset`.

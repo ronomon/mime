@@ -15,18 +15,19 @@ var tests = [
     false,
     null
   ],
-  [
-    '\f',
-    null,
-    true,
-    MIME.Error.QuotedPrintableBodyIllegal
-  ],
-  [
-    '\f',
-    null,
-    false,
-    MIME.Error.QuotedPrintableWordIllegal
-  ]
+  // TO DO: Add option to accept/reject illegal quoted-printable:
+  // [
+  //   '\f',
+  //   null,
+  //   true,
+  //   MIME.Error.QuotedPrintableBodyIllegal
+  // ],
+  // [
+  //   '\f',
+  //   null,
+  //   false,
+  //   MIME.Error.QuotedPrintableWordIllegal
+  // ]
 ];
 tests.forEach(
   function(test) {

@@ -2404,6 +2404,7 @@ MIME.decodePartsValidateBoundary = function(string) {
 MIME.decodeQuotedPrintable = function(buffer, body) {
   var self = this;
   try {
+    // TO DO: Add option to correct/reject illegal characters:
     return self.QuotedPrintable.decode(buffer, { qEncoding: !body });
   } catch (error) {
     if (error.message === 'illegal character') {
