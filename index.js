@@ -2770,30 +2770,16 @@ MIME.encodeHeaderReceived = function(received) {
 
   var stamp = [];
   if (received.from) {
-    stamp.push('from');
-    stamp.push(received.from);
+    stamp.push('from ' + received.from);
     if (received.ip) {
       stamp.push('(' + received.from + ' [' + received.ip + '])');
     }
   }
-  stamp.push('by');
-  stamp.push(received.by);
-  if (received.via) {
-    stamp.push('via');
-    stamp.push(received.via);
-  }
-  if (received.protocol) {
-    stamp.push('with');
-    stamp.push(received.protocol);
-  }
-  if (received.id) {
-    stamp.push('id');
-    stamp.push(received.id);
-  }
-  if (received.recipient) {
-    stamp.push('for');
-    stamp.push(received.recipient);
-  }
+  stamp.push('by ' + received.by);
+  if (received.via) stamp.push('via ' + received.via);
+  if (received.protocol) stamp.push('with ' + received.protocol);
+  if (received.id) stamp.push('id ' + received.id);
+  if (received.recipient) stamp.push('for ' + received.recipient);
   if (stamp.length === 0) {
     throw new Error('at least one non-empty clause must be provided');
   }
@@ -2838,6 +2824,7 @@ MIME.encodeHeaderReceived = function(received) {
     lineLength += 1 + clause.length;
   }
   lines += '\r\n';
+  // TO DO: Use generic fold algorithm as well when ready.
   return Buffer.from(lines, 'utf-8');
 };
 
