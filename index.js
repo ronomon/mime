@@ -810,6 +810,11 @@ MIME.decodeHeaderContentType = function(buffer) {
     )
   );
   if (!/^\S+\/\S+$/.test(header.value)) {
+    // RFC 2045 5.1 Syntax of the Content-Type Header Field
+    // Note also that a subtype specification is MANDATORY -- it may not be
+    // omitted from a Content-Type header field. As such, there are no
+    // default subtypes.
+    // TO DO: Add separate error message for missing subtype.
     throw new Error(self.Error.ContentType);
   }
   if (/^message\/external-body$/i.test(header.value)) {
