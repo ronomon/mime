@@ -176,7 +176,7 @@ function generateParts(crlf, boundary, expected) {
     var part = generatePart(crlf, boundary);
     parts.push(part);
     if (/^(\r\n\r\n|\n\n)/.test(part)) part = crlf + part;
-    expected.push(new Buffer(part, 'ascii'));
+    expected.push(Buffer.from(part, 'ascii'));
   }
   var delimiter = '--' + boundary + '--';
   if (random() < 0.5) delimiter += generateLWSP();
@@ -211,7 +211,7 @@ while (length--) {
   var body = generateParts(crlf, boundary, parts);
   samples.push({
     crlf: crlf,
-    buffer: new Buffer(body, 'ascii'),
+    buffer: Buffer.from(body, 'ascii'),
     boundary: boundary,
     parts: parts
   });
@@ -219,7 +219,7 @@ while (length--) {
 
 samples.push({
   crlf: '\r\n',
-  buffer: new Buffer([
+  buffer: Buffer.from([
     'Preamble',
     '',
     '--boundary',
@@ -237,13 +237,13 @@ samples.push({
   ].join('\r\n'), 'ascii'),
   boundary: 'boundary',
   parts: [
-    new Buffer([
+    Buffer.from([
       '',
       '',
       'Part without headers and without CRLF',
       '--boundarynested'
     ].join('\r\n'), 'ascii'),
-    new Buffer([
+    Buffer.from([
       'Headers',
       '',
       'Part with CRLF and --boundary in the middle of a line',
@@ -254,7 +254,7 @@ samples.push({
 
 samples.push({
   crlf: '\r\n',
-  buffer: new Buffer([
+  buffer: Buffer.from([
     '--boundary',
     '',
     'Part with empty preamble and epilogue, and without headers and CRLF.',
@@ -262,7 +262,7 @@ samples.push({
   ].join('\r\n'), 'ascii'),
   boundary: 'boundary',
   parts: [
-    new Buffer([
+    Buffer.from([
       '',
       '',
       'Part with empty preamble and epilogue, and without headers and CRLF.'
@@ -272,7 +272,7 @@ samples.push({
 
 samples.push({
   crlf: '\r\n',
-  buffer: new Buffer([
+  buffer: Buffer.from([
     'From: Joran Greef <joran@ronomon.com>',
     'To:  Joran Greef <joran@ronomon.com>',
     'Subject: Sample message',
@@ -297,13 +297,13 @@ samples.push({
   ].join('\r\n'), 'ascii'),
   boundary: 'simple boundary',
   parts: [
-    new Buffer([
+    Buffer.from([
       '',
       '',
       'This is implicitly typed plain ASCII text.',
       'It does NOT end with a linebreak.'
     ].join('\r\n'), 'ascii'),
-    new Buffer([
+    Buffer.from([
       'Content-type: text/plain; charset=us-ascii',
       '',
       'This is explicitly typed plain ASCII text.',
@@ -315,7 +315,7 @@ samples.push({
 
 samples.push({
   crlf: '\n',
-  buffer: new Buffer([
+  buffer: Buffer.from([
     'From: Joran Greef <joran@ronomon.com>',
     'To:  Joran Greef <joran@ronomon.com>',
     'Subject: Sample message',
@@ -340,13 +340,13 @@ samples.push({
   ].join('\n'), 'ascii'),
   boundary: 'simple boundary',
   parts: [
-    new Buffer([
+    Buffer.from([
       '',
       '',
       'This is implicitly typed plain ASCII text.',
       'It does NOT end with a linebreak.'
     ].join('\n'), 'ascii'),
-    new Buffer([
+    Buffer.from([
       'Content-type: text/plain; charset=us-ascii',
       '',
       'This is explicitly typed plain ASCII text.',
@@ -425,7 +425,7 @@ samples.forEach(
     try {
       testDecodePartsFindBoundary(
         sample.buffer,
-        new Buffer('--' + sample.boundary, 'ascii')
+        Buffer.from('--' + sample.boundary, 'ascii')
       );
       testDecodeParts(
         sample.buffer,
