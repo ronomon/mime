@@ -25,6 +25,37 @@ var tests = [
       { name: '', email: 'test2@test.com' }
     ],
     null
+  ],
+  [
+    'Fake <trusted@sender.com> <fake@scam.com>',
+    [
+      {
+        // Multiple angle-addr's should never occur and are suspicious:
+        // We split an address on angle brackets outside quotes.
+        // This means that the pseudo address which will end up part of the name
+        // will lose its angle brackets, and at first glance, it might seem that
+        // we are causing user data to be lost.
+        // However, if angle brackets exist outside quotes, there should only
+        // be a single pair in terms of the spec, because there can only be one
+        // angle-addr, and a phrase atom cannot contain angle brackets.
+        // Therefore, removing the extra angle brackets is not a problem, since
+        // the case is already exceptional.
+        // TO DO: We should probably detect and reject multiple angle-addr's.
+        name: 'Fake trusted@sender.com',
+        email: 'fake@scam.com'
+      }
+    ],
+    null
+  ],
+  [
+    '"QuotedFake <trusted@sender.com>" <fake@scam.com>',
+    [
+      {
+        name: 'QuotedFake <trusted@sender.com>',
+        email: 'fake@scam.com'
+      }
+    ],
+    null
   ]
 ];
 tests.forEach(
