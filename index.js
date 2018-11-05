@@ -2195,7 +2195,6 @@ MIME.decodeHeadersHeader = function(
     sourceBody,
     self.TRIM | self.LOWERCASE | self.ASCII
   );
-  self.decodeHeadersHeaderAssertUnique(headers, name);
   if (
     (sourceBody + 1 < sourceEnd) &&
     (source[sourceBody + 1] === 9 || source[sourceBody + 1] === 32)
@@ -2203,6 +2202,8 @@ MIME.decodeHeadersHeader = function(
     sourceBody++;
   }
   var body = source.slice(sourceBody + 1, sourceEnd);
+  if (self.decodeHeadersHeaderIgnoreDuplicate(headers, name, body)) return;
+  self.decodeHeadersHeaderAssertUnique(headers, name);
   if (headers.hasOwnProperty(name)) {
     headers[name].push(body);
   } else {
@@ -2258,35 +2259,72 @@ MIME.decodeHeadersHeaderAssertUnique = function(headers, name) {
   // RFC 5322 3.6 Field Definitions
   if (headers.hasOwnProperty(name)) {
     switch (name) {
-      // Multiple content-* headers are a security risk.
-      // https://noxxi.de/research/mime-conflicting-boundary.html
-      // https://noxxi.de/research/content-transfer-encoding.html
-      case 'content-disposition':
-        throw new Error(self.Error.MultipleContentDisposition);
-      case 'content-id':
-        throw new Error(self.Error.MultipleContentID);
-      case 'content-transfer-encoding':
-        throw new Error(self.Error.MultipleContentTransferEncoding);
-      case 'content-type':
-        throw new Error(self.Error.MultipleContentType);
-      case 'date':
-        throw new Error(self.Error.MultipleDate);
-      case 'from':
-        throw new Error(self.Error.MultipleFrom);
-      case 'in-reply-to':
-        throw new Error(self.Error.MultipleInReplyTo);
-      // case 'message-id':
-      //   throw new Error(self.Error.MultipleMessageID);
-      case 'references':
-        throw new Error(self.Error.MultipleReferences);
-      case 'reply-to':
-        throw new Error(self.Error.MultipleReplyTo);
-      case 'sender':
-        throw new Error(self.Error.MultipleSender);
-      case 'subject':
-        throw new Error(self.Error.MultipleSubject);
+    // Multiple content-* headers are a security risk.
+    // https://noxxi.de/research/mime-conflicting-boundary.html
+    // https://noxxi.de/research/content-transfer-encoding.html
+    case 'content-disposition':
+      throw new Error(self.Error.MultipleContentDisposition);
+    case 'content-id':
+      throw new Error(self.Error.MultipleContentID);
+    case 'content-transfer-encoding':
+      throw new Error(self.Error.MultipleContentTransferEncoding);
+    case 'content-type':
+      throw new Error(self.Error.MultipleContentType);
+    case 'date':
+      throw new Error(self.Error.MultipleDate);
+    case 'from':
+      throw new Error(self.Error.MultipleFrom);
+    case 'in-reply-to':
+      throw new Error(self.Error.MultipleInReplyTo);
+    case 'message-id':
+      throw new Error(self.Error.MultipleMessageID);
+    case 'references':
+      throw new Error(self.Error.MultipleReferences);
+    case 'reply-to':
+      throw new Error(self.Error.MultipleReplyTo);
+    case 'sender':
+      throw new Error(self.Error.MultipleSender);
+    case 'subject':
+      throw new Error(self.Error.MultipleSubject);
     }
   }
+};
+
+MIME.decodeHeadersHeaderIgnoreDuplicate = function(headers, name, body) {
+  var self = this;
+  if (headers.hasOwnProperty(name)) {
+    switch (name) {
+    case 'content-disposition':
+    case 'content-id':
+    case 'content-transfer-encoding':
+    case 'content-type':
+    case 'date':
+    case 'from':
+    case 'in-reply-to':
+    case 'message-id':
+    case 'references':
+    case 'reply-to':
+    case 'sender':
+    case 'subject':
+      var existing = headers[name][0];
+      if (existing === undefined) return false;
+      if (existing.length + body.length > 65536) return false;
+      var x = self.slice(
+        existing,
+        0,
+        existing.length,
+        self.TRIM | self.LOWERCASE
+      );
+      var y = self.slice(
+        body,
+        0,
+        body.length,
+        self.TRIM | self.LOWERCASE
+      );
+      return y.equals(x);
+    }
+  }
+  return false;
 };
 
 MIME.decodeParts = function(buffer, boundary) {
