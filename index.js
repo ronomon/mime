@@ -3389,6 +3389,8 @@ MIME.Error = {
     "(see RFC 5322 3.3).\r\n",
   DateMinute: "550 Your email had an invalid 'Date' header 'minute' " +
     "(see RFC 5322 3.3).\r\n",
+  DateMissing: "550 Your email had a required 'Date' header missing " +
+    "(see RFC 5322 3.6).\r\n",
   DateMonth: "550 Your email had an invalid 'Date' header 'month' " +
     "(see RFC 5322 3.3).\r\n",
   DateSecond: "550 Your email had an invalid 'Date' header 'second' " +
@@ -3596,6 +3598,11 @@ Object.defineProperty(MIME.Message.prototype, 'date', {
     // RFC 5322 3.6 Field Definitions
     // The only required header fields are the origination date field and
     // the originator address field(s).
+    
+    // Non-spec: We leave policy decision on missing date to higher layers.
+    if (typeof self._date !== 'number') {
+      // throw new Error(MIME.Error.DateMissing);
+    }
 
     // RFC 5321 6.4 Compensating for Irregularities
     // The following changes to a message being processed MAY be applied
@@ -3612,7 +3619,6 @@ Object.defineProperty(MIME.Message.prototype, 'date', {
     // and how. These changes MUST NOT be applied by an SMTP server that
     // provides an intermediate relay function.
 
-    // We do not enforce a Date. We leave this policy decision to higher layers.
     return self._date;
   }
 });

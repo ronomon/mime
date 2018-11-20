@@ -179,7 +179,7 @@ mime.messageID;           //   <String> / undefined
 mime.references;          // [ <String>, <String> ]
 mime.inReplyTo;           // [ <String>, <String> ]
 
-mime.date;                // <Unix Timestamp Integer> / undefined
+mime.date;                // <Unix Timestamp Integer>
 mime.subject;             // <String>
 
 mime.contentDisposition;  // { value: <String>, parameters: {} }
