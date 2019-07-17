@@ -202,9 +202,32 @@ MIME.decodeBody = function(buffer, contentType, contentTransferEncoding) {
     // specify whether or not a content-transfer-encoding can be used for
     // that subtype, with "cannot be used" as the default.
 
-    // For detail on these relaxations see RFC 6532 and RFC 6533.
-    // We do not ban nested encodings as a result.
+    // For further relaxations see RFC 6532 and RFC 6533.
 
+    // RFC 6532 Internationalized Email Headers
+    // This specification updates Section 6.4 of RFC 2045 to eliminate the
+    // restriction prohibiting the use of non-identity content-transfer-
+    // encodings on subtypes of "message/".
+
+    // However, these relaxations apply only to subtypes of "message/".
+    // Further, some systems incorrectly apply a content-transfer-encoding to a
+    // multipart body, causing corruption and/or missing multiparts if the
+    // encoding is decoded.
+
+    // Options:
+    // 1. Reject content-transfer-encoding on all composite media types.
+    // 2. Reject content-transfer-encoding on multiparts.
+    // 3. Reject content-transfer-encoding on multiparts but allow base64.
+    // 4. Ignore content-transfer-encoding on multiparts.
+    // 5. Follow content-transfer-encoding on multiparts.
+    if (
+      /^(message|multipart)\//.test(contentType.value) &&
+      contentTransferEncoding !== '7bit' &&
+      contentTransferEncoding !== '8bit' &&
+      contentTransferEncoding !== 'binary'
+    ) {
+      throw new Error(self.Error.ContentTransferEncodingComposite);
+    }
     if (contentTransferEncoding === 'base64') {
       // RFC 2045 6.8 Base64 Content-Transfer-Encoding
       // All line breaks or other characters not
@@ -3367,6 +3390,9 @@ MIME.Error = {
     "(see RFC 2045 2.2, RFC 2046 4.1.2, RFC 2047 3 and RFC 2231).\r\n",
   CommentUnterminated: "550 Your email had a header with an unterminated " +
     "comment (see RFC 5322 3.2.2).\r\n",
+  ContentTransferEncodingComposite: "550 Your email had an illegal " +
+    "'Content-Transfer-Encoding' mechanism for a composite or 'multipart' " +
+    "type (see RFC 2045 6.4).\r\n",
   ContentTransferEncodingUnrecognized: "550 Your email had an unrecognized " +
     "'Content-Transfer-Encoding' mechanism (see RFC 2045 6.1 and 6.4).\r\n",
   ContentType: "550 Your email had an invalid 'Content-Type' header syntax " +
