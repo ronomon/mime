@@ -3624,12 +3624,9 @@ Object.defineProperty(MIME.Message.prototype, 'date', {
     // RFC 5322 3.6 Field Definitions
     // The only required header fields are the origination date field and
     // the originator address field(s).
-    
-    // Non-spec: We leave policy decision on missing date to higher layers.
     if (typeof self._date !== 'number') {
-      // throw new Error(MIME.Error.DateMissing);
+      throw new Error(MIME.Error.DateMissing);
     }
-
     // RFC 5321 6.4 Compensating for Irregularities
     // The following changes to a message being processed MAY be applied
     // when necessary by an originating SMTP server, or one used as the
@@ -3644,7 +3641,6 @@ Object.defineProperty(MIME.Message.prototype, 'date', {
     // should be applied when considering whether or not to perform fixes
     // and how. These changes MUST NOT be applied by an SMTP server that
     // provides an intermediate relay function.
-
     return self._date;
   }
 });
