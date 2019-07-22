@@ -218,9 +218,6 @@ MIME.decodeBody = function(buffer, contentType, contentTransferEncoding) {
       contentTransferEncoding !== '8bit' &&
       contentTransferEncoding !== 'binary'
     ) {
-      if (/^message\//.test(contentType.value)) {
-        throw new Error(self.Error.ContentTransferEncodingMessage);
-      }
       if (/^multipart\//.test(contentType.value)) {
         throw new Error(self.Error.ContentTransferEncodingMultipart);
       }
@@ -3387,9 +3384,6 @@ MIME.Error = {
     "(see RFC 2045 2.2, RFC 2046 4.1.2, RFC 2047 3 and RFC 2231).\r\n",
   CommentUnterminated: "550 Your email had a header with an unterminated " +
     "comment (see RFC 5322 3.2.2).\r\n",
-  ContentTransferEncodingMessage: "550 Your email had an illegal " +
-    "'Content-Transfer-Encoding' mechanism on a 'message' composite media " +
-    "type (see RFC 2045 6.4).\r\n",
   ContentTransferEncodingMultipart: "550 Your email had an illegal " +
     "'Content-Transfer-Encoding' mechanism on a 'multipart' composite media " +
     "type (see RFC 2045 6.4).\r\n",
