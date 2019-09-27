@@ -1,6 +1,6 @@
 {
   "name": "@ronomon/mime",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Fast, robust, standards-compliant MIME decoder. Ships with extensive tests and fuzz tests.",
   "main": "index.js",
   "files": [
