@@ -18,7 +18,8 @@ particular headers to reject an email.
 
 * Caches decoded properties for subsequent use.
 
-* Uses native fuzz-tested C++ [Base64](https://github.com/ronomon/base64) and [Quoted-Printable](https://github.com/ronomon/quoted-printable) bindings.
+* Uses native fuzz-tested C++ [Base64](https://github.com/ronomon/base64) and
+[Quoted-Printable](https://github.com/ronomon/quoted-printable) bindings.
 `MIME`'s Base64 decoder in particular was developed for decoding wrapped Base64
 [more efficiently](https://github.com/ronomon/base64#motivation) and detecting
 obvious corruption and character truncation.
@@ -54,9 +55,9 @@ email address (sometimes added by Outlook).
 
 * Decodes `encoded-words` with empty `encoded-text`.
 
-* Decodes `encoded-words` found in `Content-Type` and `Content-Disposition`
-parameters (used by Outlook and Gmail contrary to [RFC 2047 5 Use of
-encoded-words in message headers](https://tools.ietf.org/html/rfc2047#section-5)).
+* Decodes `encoded-words` in `Content-Type` and `Content-Disposition` parameters
+(encoded by Outlook and Gmail contrary to [RFC 2047 5 Use of encoded-words in
+message headers](https://tools.ietf.org/html/rfc2047#section-5)).
 
 * Removes any directory path components from an attachment name or filename
 (when accessed via `mime.filename`, see Usage below).
@@ -109,7 +110,8 @@ that the body is encoded in any other character set.
 
 * Decodes a variety of time zones and year formats.
 
-* Accepts missing time zone and assumes UTC to support email clients such as Blackberry which do not provide the required time zone in the `Date` header.
+* Accepts missing time zone and assumes UTC to support email clients such as
+Blackberry which do not provide the required time zone in the `Date` header.
 
 * Rejects invalid `Date` header syntax.
 
@@ -118,10 +120,10 @@ that the body is encoded in any other character set.
 * Rejects headers containing forbidden characters.
 
 * Rejects folded header lines which exceed the 998 line length limit, but only
-after allowing for clients such as Outlook.com which exclude the
-`field-name` and `colon` from their character count, and which mistake the limit
-to be 1000 characters excluding the CRLF. The limit is in fact 998 characters
-excluding the CRLF.
+after allowing for clients such as Outlook.com which exclude the `field-name`
+and `colon` from their character count, and which mistake the limit to be 1000
+characters excluding the CRLF. The limit is in fact 998 characters excluding the
+CRLF.
 
 * Rejects multipart boundaries containing forbidden characters.
 
@@ -136,7 +138,8 @@ anti-virus software.
 
 * [RFC 5322](https://tools.ietf.org/html/rfc5322) - Internet Message Format.
 
-* [RFC 5321](https://tools.ietf.org/html/rfc5321) - Simple Mail Transfer Protocol.
+* [RFC 5321](https://tools.ietf.org/html/rfc5321) - Simple Mail Transfer
+Protocol.
 
 * [RFC 2045](https://tools.ietf.org/html/rfc2045) - Multipurpose Internet Mail
 Extensions (MIME) Part One: Format of Internet Message Bodies.
