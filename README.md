@@ -59,6 +59,9 @@ email address (sometimes added by Outlook).
 (encoded by Outlook and Gmail contrary to [RFC 2047 5 Use of encoded-words in
 message headers](https://tools.ietf.org/html/rfc2047#section-5)).
 
+* Rejects `encoded-words` containing malicious
+["mailsploit"](https://www.mailsploit.com) control characters.
+
 * Removes any directory path components from an attachment name or filename
 (when accessed via `mime.filename`, see Usage below).
 

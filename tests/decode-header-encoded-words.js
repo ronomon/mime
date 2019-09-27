@@ -71,7 +71,11 @@ function generateText() {
     var length = Math.floor(random() * 512);
   }
   var buffer = Buffer.alloc(length);
-  while (length--) buffer[length] = Math.floor(random() * 256);
+  while (length--) {
+    var code = Math.floor(random() * 256);
+    if ((code <= 31 && code !== 9) || code === 127) code += 32;
+    buffer[length] = code;
+  }
   return Buffer.from(buffer.toString('utf-8'), 'utf-8');
 }
 function generateWords(result) {
@@ -180,18 +184,66 @@ var samples = [
   [
     '=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=',
     'a b'
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([  9]).toString('base64') + '?=',
+    '\t'
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([ 32]).toString('base64') + '?=',
+    ' '
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([  0]).toString('base64') + '?=',
+    ' ',
+    MIME.Error.EncodedWordControlCharacters
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([ 10]).toString('base64') + '?=',
+    ' ',
+    MIME.Error.EncodedWordControlCharacters
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([ 13]).toString('base64') + '?=',
+    ' ',
+    MIME.Error.EncodedWordControlCharacters
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([ 31]).toString('base64') + '?=',
+    ' ',
+    MIME.Error.EncodedWordControlCharacters
+  ],
+  [
+    '=?utf-8?B?' + Buffer.from([127]).toString('base64') + '?=',
+    ' ',
+    MIME.Error.EncodedWordControlCharacters
   ]
 ];
 
 samples.forEach(
   function(sample) {
     var source = Buffer.from(sample[0], 'ascii');
-    Test.equal(
-      MIME.decodeHeaderEncodedWords(source).toString('utf-8'),
-      sample[1],
-      namespace,
-      'suffix'
-    );
+    var error;
+    try {
+      var target = MIME.decodeHeaderEncodedWords(source).toString('utf-8');
+    } catch (exception) {
+      error = exception.message || exception;
+    }
+    if (sample.length <= 2) {
+      Test.equal(
+        target,
+        sample[1],
+        namespace,
+        JSON.stringify(sample[0])
+      );
+    } else {
+      Test.equal(
+        error,
+        sample[2],
+        namespace,
+        JSON.stringify(sample[0])
+      );
+    }
   }
 );
 

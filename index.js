@@ -1284,6 +1284,19 @@ MIME.decodeHeaderEncodedWord = function(source) {
   }
 };
 
+MIME.decodeHeaderEncodedWordAssertCharacters = function(source) {
+  var self = this;
+  // Non-Spec: Reject encoded control characters:
+  // Many email clients are vulnerable to "mailsploit".
+  for (var index = 0, length = source.length; index < length; index++) {
+    if (source[index] <= 31 || source[index] === 127) {
+      if (source[index] !== 9) {
+        throw new Error(self.Error.EncodedWordControlCharacters);
+      }
+    }
+  }
+};
+
 MIME.decodeHeaderEncodedWordBeforeParsingStructure = function(source) {
   var self = this;
   // RFC 2047 6.2 Display of 'encoded-word's
@@ -1365,6 +1378,7 @@ MIME.decodeHeaderEncodedWords = function(source) {
       // We should never be here, this is an algorithmic error:
       throw new Error('matched false positive encoded-word');
     }
+    self.decodeHeaderEncodedWordAssertCharacters(text);
     buffers.push(text);
     sourceStart = sourceIndex = range[1];
   }
@@ -3415,6 +3429,8 @@ MIME.Error = {
     "(see RFC 5322 3.3).\r\n",
   DateZone: "550 Your email had an invalid 'Date' header 'zone' " +
     "(see RFC 5322 3.3).\r\n",
+  EncodedWordControlCharacters: "550 Your email had a header with an encoded " +
+    "word containing dangerous control characters.\r\n",
   FromMissing: "550 Your email had a required 'From' header missing " +
     "(see RFC 5322 3.6).\r\n",
   HeaderColonMissing: "550 Your email had a header with a required colon " +
