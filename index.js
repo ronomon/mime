@@ -136,20 +136,18 @@ MIME.decodeBase64 = function(buffer, body) {
 
     // Non-Spec: We reject illegal and truncated Base64.
     switch (error.message) {
-      case 'source is corrupt':
-        if (body) {
-          throw new Error(self.Error.Base64BodyIllegal);
-        } else {
-          throw new Error(self.Error.Base64WordIllegal);
-        }
-        break;
-      case 'source is truncated':
-        if (body) {
-          throw new Error(self.Error.Base64BodyTruncated);
-        } else {
-          throw new Error(self.Error.Base64WordTruncated);
-        }
-        break;
+    case 'source is corrupt':
+      if (body) {
+        throw new Error(self.Error.Base64BodyIllegal);
+      } else {
+        throw new Error(self.Error.Base64WordIllegal);
+      }
+    case 'source is truncated':
+      if (body) {
+        throw new Error(self.Error.Base64BodyTruncated);
+      } else {
+        throw new Error(self.Error.Base64WordTruncated);
+      }
     }
     throw error;
   }
