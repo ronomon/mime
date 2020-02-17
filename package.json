@@ -68,8 +68,8 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "@ronomon/base64": "^2.3.0",
-    "@ronomon/quoted-printable": "^3.2.0",
-    "iconv": "^2.3.0"
+    "@ronomon/base64": "^2.4.1",
+    "@ronomon/quoted-printable": "^3.2.1",
+    "iconv": "^2.3.5"
   }
 }
