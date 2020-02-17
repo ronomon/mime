@@ -824,6 +824,10 @@ MIME.decodeHeaderContentType = function(buffer) {
       self.decodeHeaderUnfold(buffer)
     )
   );
+  // Map invalid content types:
+  if (self.decodeHeaderContentTypeInvalid.hasOwnProperty(header.value)) {
+    header.value = self.decodeHeaderContentTypeInvalid[header.value];
+  }
   if (!/^\S+\/\S+$/.test(header.value)) {
     // RFC 2045 5.1 Syntax of the Content-Type Header Field
     // Note also that a subtype specification is MANDATORY -- it may not be
@@ -850,6 +854,10 @@ MIME.decodeHeaderContentType = function(buffer) {
     }
   }
   return header;
+};
+
+MIME.decodeHeaderContentTypeInvalid = {
+  'jpeg file/octet-stream': 'application/octet-stream'
 };
 
 MIME.decodeHeaderDate = function(buffer) {

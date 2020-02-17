@@ -219,6 +219,14 @@ var tests = [
     'text/plain;charset',
     null,
     MIME.Error.ParameterValueMissing
+  ],
+  [
+    'JPEG file/octet-stream;name=invalid.jpg',
+    {
+      value: 'application/octet-stream',
+      parameters: { name: 'invalid.jpg' }
+    },
+    null
   ]
 ];
 tests.forEach(
