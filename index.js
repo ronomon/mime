@@ -865,7 +865,7 @@ MIME.decodeHeaderDate = function(buffer) {
     self.TRIM | self.UPPERCASE | self.ASCII
   );
   var match = string.match(self.decodeHeaderDateRegex);
-  if (!match) throw new Error(self.Error.Date);
+  if (!match) return self.decodeHeaderDateInvalid(string);
   var dayname = match[1] || '';
   var day = parseInt(match[2], 10);
   if (self.decodeHeaderDateMonth.hasOwnProperty(match[3])) {
@@ -941,6 +941,30 @@ MIME.decodeHeaderDate = function(buffer) {
   }
   return timestamp;
 };
+
+MIME.decodeHeaderDateInvalid = function(string) {
+  var self = this;
+  var match = string.match(self.decodeHeaderDateInvalidRegex);
+  if (!match) throw new Error(self.Error.Date);
+  var day = parseInt(match[1], 10);
+  if (self.decodeHeaderDateMonth.hasOwnProperty(match[2])) {
+    var month = self.decodeHeaderDateMonth[match[2]];
+  } else {
+    throw new Error(self.Error.DateMonth);
+  }
+  var year = parseInt(match[3], 10);
+  var hour = parseInt(match[4], 10);
+  var minute = parseInt(match[5], 10);
+  var second = parseInt(match[6], 10);
+  if (day === 0 || day > 31) throw new Error(self.Error.DateDay);
+  if (month === 0 || month > 12) throw new Error(self.Error.DateMonth);
+  if (hour > 23) throw new Error(self.Error.DateHour);
+  if (minute > 59) throw new Error(self.Error.DateMinute);
+  if (second > 60) throw new Error(self.Error.DateSecond);
+  return Date.UTC(year, month - 1, day, hour, minute, second);
+};
+
+MIME.decodeHeaderDateInvalidRegex = /^(\d{1,2})-(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)-(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/;
 
 MIME.decodeHeaderDateMonth = {
   JAN: 1,

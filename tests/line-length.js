@@ -11,6 +11,7 @@ function checkfile(filename) {
   lines.forEach(
     function(line) {
       if (line.length > 80) {
+        if (/MIME\.decodeHeaderDateInvalidRegex/.test(line)) return;
         if (/MIME\.decodeHeaderDateRegex/.test(line)) return;
         throw new Error(relative + ' > 80 at line: ' + line);
       }
