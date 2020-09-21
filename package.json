@@ -68,8 +68,8 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "@ronomon/base64": "^2.4.1",
-    "@ronomon/quoted-printable": "^3.2.1",
+    "@ronomon/base64": "OrcaOcean/base64",
+    "@ronomon/quoted-printable": "OrcaOcean/quoted-printable",
     "iconv": "^2.3.5"
   }
 }
